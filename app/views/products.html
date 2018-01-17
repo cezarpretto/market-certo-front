@@ -1,0 +1,345 @@
+<ot-header ot-titulo="Produtos" ot-icone="fa fa-product-hunt"></ot-header>
+<section class="content">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="well well-sm clearfix">
+        <button type="button" class="btn btn-success btn-sm pull-right" ng-click="newProduct()">
+          <i class="fa fa-plus"></i> Novo
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-default panel-body">
+    <div class="row">
+      <form name="frmProduct" ng-submit="submitSearch()">
+        <div class="col-sm-2">
+          <select name="tipo" class="form-control" required="required" ng-model="search.nome" ng-options="type.id as type.name for type in types" ng-change="products = []" convert-to-number>
+          </select>
+        </div>
+        <div class="col-sm-4">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Pesquisa..." ng-model="search.obs">
+            <span class="input-group-btn">
+            <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit">
+              <i class="fa fa-search"></i> Buscar
+            </button>
+          </span>
+          </div>
+        </div>
+      </form>
+      <div class="col-sm-12">
+        <table class="table table-striped table-hover table-condensed" st-pipe="callServer" st-table="products">
+          <thead>
+            <tr>
+              <th colspan="5" class="text-center">Produtos</th>
+            </tr>
+            <tr>
+              <th st-sort="codigo"><a role="button">Código</a></th>
+              <th st-sort="nome"><a role="button">Nome</a></th>
+              <!-- <th class="text-center"><a role="button">Tamanhos</a></th> -->
+              <th st-sort="grupo.descricao"><a role="button">Categoria</a></th>
+              <th st-sort="grupo.grupoSub.descricao"><a role="button">Subcategoria</a></th>
+              <th class="text-center"></th>
+            </tr>
+          </thead>
+          <tbody ng-if="!isLoading">
+            <tr ng-repeat="p in products" ng-dblclick="moreInformation(p, search.nome)">
+              <td>{{p.codigo}}</td>
+              <td>{{p.nome}}</td>
+              <!-- <td class="text-center"><span class="label label-primary" ng-repeat="t in p.tamanhos"> {{t.descricao}} </span></td> -->
+              <td>{{p.grupo.descricao}}</td>
+              <td>{{p.grupo.grupoSub.descricao}}</td>
+              <td class="text-center">
+                <button type="button" class="btn btn-xs btn-warning" title="Editar Informações" ng-click="moreInformation(p, search.nome)">
+                  <i class="fa fa-pencil"></i>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+          <tbody ng-if="isLoading">
+            <tr>
+              <td colspan="5" class="text-center">Carregando... </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5" class="text-center">
+                <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="dlgInfoProd" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" ng-click="closeModal()">&times;</button>
+        <h4 class="modal-title">Criação/Edição de Produto's</h4>
+      </div>
+      <form name="frmProducts" ng-submit="save()" novalidate>
+        <div class="modal-body">
+          <ul class="nav nav-tabs">
+            <li role="presentation" class="{{rowProd === 0?'active':''}}"><a role="button" ng-click="rowProd = 0">Informações</a></li>
+            <li role="presentation" class="{{rowProd === 1?'active':''}}"><a role="button" ng-click="getSizes();rowProd = 1">Quantidade's</a></li>
+          </ul>
+          <br>
+          <div ng-show="rowProd === 0" class="row">
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="">Código:</label>
+                <input name="codigo" type="text" class="form-control" required="required" ng-model="product.codigo" ng-change="changeStatus()">
+              </div>
+            </div>
+            <div class="col-sm-3">
+              <div class="form-group">
+                <label for="">Código de Barra:</label>
+                <input name="codigoBarra" type="text" class="form-control" ng-maxlength="13" ng-pattern="/^[0-9]+$/" ng-model="product.codigoBarra" ng-change="changeStatus()">
+              </div>
+            </div>
+            <div class="col-sm-7">
+              <div class="form-group">
+                <label for="">Nome:</label>
+                <input name="nome" type="text" class="form-control" required="required" ng-model="product.nome" ng-change="changeStatus()">
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="form-group">
+                <label for="">Observações:</label>
+                <input name="obs" type="text" class="form-control" ng-model="product.obs" ng-change="changeStatus()">
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="">Categoria:</label>
+                <select name="categoria" class="form-control" required="required" ng-model="product.grupo.id" ng-options="group.id as group.descricao for group in groups" ng-change="changeStatus()">
+                </select>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="">Subcategoria:</label>
+                <select name="subcategoria" class="form-control" required="required" ng-model="product.grupo.grupoSub.id" ng-options="subgroup.id as subgroup.descricao for subgroup in subGroups" ng-change="changeStatus()">
+                </select>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <label for="">Item Mestre:</label>
+              <input class="checkbox" type="checkbox" name="similar" ng-model="product.mestre" ng-change="changeStatus()">
+            </div>
+            <input type="file" id="inputFile" ng-hide="true" ng-model="base64Logo" base-sixty-four-input accept="image/png, image/jpeg">
+            <div class="col-sm-3">
+              <label for="">Foto:</label>
+              <a role="button" class="thumbnail text-center" ng-click="clickImg()">
+                <img ng-src="{{product.foto || 'images/noimage.png'}}" alt="Logo Empresa" width="500">
+              </a>
+            </div>
+            <div ng-if="(typeDialog === 2 || !product.mestre && isEditing || !product.mestre && typeDialog === 0)" class="col-sm-9">
+              <div class="panel panel-default panel-body">
+                <table class="table table-striped table-hover table-condensed" st-table="productsMestre" st-safe-src="productsMestreAux">
+                  <thead>
+                    <tr>
+                      <th colspan="3" class="text-center">Similar de</th>
+                    </tr>
+                    <tr>
+                      <th st-sort="codigo"><a role="button">Código</a></th>
+                      <th st-sort="nome"><a role="button">Nome</a></th>
+                      <th class="text-center"></th>
+                    </tr>
+                    <tr>
+                      <th colspan="3">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="p in productsMestre">
+                      <td>{{p.codigo}}</td>
+                      <td>{{p.nome}}</td>
+                      <td class="text-center">
+                        <input type="radio" class="radio" ng-model="product.idMestre" name="mestre" value="{{p.id}}" required="required" ng-change="changeStatus()" />
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3" class="text-center">
+                        <div st-pagination="" st-items-by-page="3" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div ng-if="typeDialog === 1 && !isEditing" class="col-sm-9">
+              <div class="panel panel-default panel-body">
+                <table class="table table-striped table-hover table-condensed" st-table="productsSimilar" st-safe-src="productsSimilarAux">
+                  <thead>
+                    <tr>
+                      <th colspan="4" class="text-center">Similares</th>
+                    </tr>
+                    <tr>
+                      <th st-sort="codigo"><a role="button">Código</a></th>
+                      <th st-sort="nome"><a role="button">Nome</a></th>
+                      <th class="text-center" st-sort="mestre"><a role="button">Mestre</a></th>
+                      <th class="text-center"></th>
+                    </tr>
+                    <tr>
+                      <th colspan="4">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="p in productsSimilar">
+                      <td>{{p.codigo}}</td>
+                      <td>{{p.nome}}</td>
+                      <td class="text-center">
+                        <span class="label label-success" ng-if="p.mestre">
+          									<span class="fa fa-check-circle"></span>
+                        </span>
+                        <span class="label label-danger" ng-if="!p.mestre">
+          									<span class="fa fa-times-circle"></span>
+                        </span>
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-xs btn-warning" title="Editar Informações" ng-click="moreInformation(p)">
+                          <i class="fa fa-pencil"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="4" class="text-center">
+                        <div st-pagination="" st-items-by-page="3" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div ng-show="rowProd === 1" class="row">
+            <div class="col-sm-4">
+              <div class="panel panel-default panel-body">
+                <table class="table table-striped table-hover table-condensed" st-table="sizes" st-safe-src="sizesAux">
+                  <thead>
+                    <tr>
+                      <th colspan="1" class="text-center">Tamanhos Cadastrados</th>
+                    </tr>
+                    <tr>
+                      <th class="text-center" st-sort="descricao"><a role="button">Descrição</a></th>
+                    </tr>
+                    <tr>
+                      <th colspan="1">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="size in sizes" ng-click="changeSizes(size)" title="{{containSizeInProduct(size)?'Incluso no Produto':'Não Incluso'}}" class="{{containSizeInProduct(size)?'info':''}}">
+                      <td class="text-center">
+                        <div ng-if="(size.operacao === 0 || size.operacao === null)">
+                          {{size.descricao}}
+                        </div>
+                        <div ng-if="size.operacao === 1">
+                          <easy-editable es-model="size.descricao" es-type="text" es-default="Descrição"></easy-editable>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="1" class="text-center">
+                        <div ng-if="size.operacao === 1" class="btn-group btn-group-xs">
+                          <button type="button" class="btn btn-primary" title="Salvar Tamanho" ng-click="saveSize()">
+                            <i class="fa fa-floppy-o"></i> Salvar
+                          </button>
+                          <button type="button" class="btn btn-danger" title="Cancelar Criação" ng-click="revertSize()">
+                            <i class="fa fa-times-circle"></i> Cancelar
+                          </button>
+                        </div>
+                        <div ng-if="size.operacao === 0">
+                          <button class="btn btn-success btn-xs" title="Criar Novo Tamanho" type="button" name="button" ng-click="newSize()">
+                            <i class="fa fa-plus"></i> Novo
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="1" class="text-center">
+                        <div st-pagination="" st-items-by-page="5" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+            <div class="col-sm-8">
+              <div class="panel panel-default panel-body">
+                <table class="table table-striped table-hover table-condensed" st-table="quantitySizes" st-safe-src="quantitySizesAux">
+                  <thead>
+                    <tr>
+                      <th colspan="3" class="text-center">Quantidade por Tamanho</th>
+                    </tr>
+                    <tr>
+                      <th class="text-center" st-sort="descricao"><a role="button">Tamanho</a></th>
+                      <th class="text-center" st-sort="quantidade"><a role="button">Quantidade</a></th>
+                      <th class="text-center"></th>
+                    </tr>
+                    <tr>
+                      <th colspan="3">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="size in quantitySizes">
+                      <td class="text-center">{{size.descricao}}</td>
+                      <td class="text-center input-table">
+                        <easy-editable es-model="size.quantidade" es-type="number" es-default="0"></easy-editable>
+                      </td>
+                      <td class="text-center">
+                        <button type="button" class="btn btn-xs btn-danger" title="Remover Tamanho" ng-click="changeSizes(size)">
+                          <i class="fa fa-minus-circle"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="3" class="text-center">
+                        <div st-pagination="" st-items-by-page="5" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <!-- ng-disabled="frmProducts.$invalid" -->
+          <span ng-if="(typeDialog === 0 || isEditing)">
+            <button type="submit" class="btn btn-primary" title="Salvar Alterações" ng-disabled="frmProducts.$invalid">
+              <i class="fa fa-floppy-o"></i> Salvar
+            </button>
+          </span>
+          <span ng-if="(typeDialog === 1 && !isEditing)">
+            <button type="button" class="btn btn-success" title="Novo Produto Similar" ng-click="newProduct(true)">
+              <i class="fa fa-plus"></i> Novo
+            </button>
+          </span>
+          <button type="button" class="btn btn-default" title="Cancelar Criação/Edição" ng-click="closeModal()">
+            <i class="fa fa-times-circle-o"></i> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,50 @@
+<ot-header ot-titulo="Campanhas" ot-icone="fa fa-flag"></ot-header>
+<section class="content">
+  <div class="panel panel-default">
+    <div class="panel-body">
+      <div class="row">
+        <div class="col-sm-3">
+          <h3>Campanhas Encerradas</h3>
+          <table class="table table-striped table-hover table-condensed" st-table="campaignsOld" st-safe-src="campaignsOldAux">
+            <thead>
+              <tr>
+                <th class="text-center" st-sort="dtIni"><a role="button">Data Inicial</a></th>
+                <th class="text-center" st-sort="dtFin"><a role="button">Data Final</a></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="c in campaignsOld">
+                <td class="text-center">{{c.dtIni | date: 'dd/MM/yyyy'}}</td>
+                <td class="text-center">{{c.dtFin | date: 'dd/MM/yyyy'}}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="4" class="text-center">
+                  <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="col-sm-9">
+          <h3 class="text-center">Campanhas Abertas</h3>
+          <div ng-repeat="campaign in campaigns" class="col-sm-3">
+            <div class="media">
+              <div class="media-left">
+                <a role="button">
+                  <img class="media-object" ng-src="{{campaign.empresa.logo || 'images/noimage.png'}}" alt="Logo Empresa" width="150" height="150">
+                </a>
+              </div>
+              <div class="media-body">
+                <h4 class="media-heading">{{campaign.empresa.nomeFantasia}}</h4>
+                <h5 class="media-heading">{{campaign.empresa.endereco.municipio.municipio + ' - ' + campaign.empresa.endereco.municipio.estado.uf}}</h4>
+                <h5 class="media-heading">{{campaign.dtIni | date: 'dd/MM/yyyy'}} - {{campaign.dtFin | date: 'dd/MM/yyyy'}}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

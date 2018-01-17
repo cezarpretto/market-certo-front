@@ -1,0 +1,659 @@
+<ot-header ot-titulo="Campanhas" ot-icone="fa fa-flag"></ot-header>
+<!-- <br> -->
+<section class="content">
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="well well-sm clearfix">
+        <button type="button" class="btn btn-success btn-sm pull-right" ng-click="new()">
+            <i class="fa fa-plus"></i> Novo
+          </button>
+      </div>
+    </div>
+  </div>
+  <div class="panel panel-default panel-body">
+    <div class="row">
+      <form name="frmProduct" ng-submit="submitSearch()">
+        <div class="col-sm-3">
+          <div ng-class="{ 'input-group' : filter.offset === 0 }">
+            <select name="tipo" class="form-control" required="required" ng-model="filter.offset" ng-options="type.id as type.description for type in types" ng-change="campaigns = []; changeType();">
+              </select>
+            <span class="input-group-btn" ng-if="filter.offset === 0">
+                <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit" ng-disabled="frmProduct.$invalid">
+                  <i class="fa fa-search"></i> Buscar
+                </button>
+              </span>
+          </div>
+        </div>
+        <div class="col-sm-2" ng-if="filter.offset === 1">
+          <div class="input-group">
+            <input type="date" class="form-control" ng-model="filter.dtCriacao" mc-date-mask required="required">
+            <span class="input-group-btn">
+                <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit" ng-disabled="frmProduct.$invalid">
+                  <i class="fa fa-search"></i> Buscar
+                </button>
+              </span>
+          </div>
+        </div>
+        <div ng-if="filter.offset === 2">
+          <div class="col-sm-2">
+            <div class="input-group">
+              <span class="input-group-addon">De:</span>
+              <input type="date" class="form-control" ng-model="filter.dtIni" mc-date-mask required="required">
+            </div>
+          </div>
+          <div class="col-sm-2">
+            <div class="input-group">
+              <span class="input-group-addon">Até:</span>
+              <input type="date" class="form-control" ng-model="filter.dtFin" mc-date-mask required="required">
+              <span class="input-group-btn">
+                  <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit" ng-disabled="frmProduct.$invalid">
+                    <i class="fa fa-search"></i> Buscar
+                  </button>
+                </span>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-3" ng-if="filter.offset === 3">
+          <div class="input-group">
+            <select name="tipo" class="form-control" required="required" ng-model="filter.criador.id" ng-options="user.id as user.nome for user in users">
+              </select>
+            <span class="input-group-btn">
+                <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit" ng-disabled="frmProduct.$invalid">
+                  <i class="fa fa-search"></i> Buscar
+                </button>
+              </span>
+          </div>
+        </div>
+      </form>
+      <div class="col-sm-12">
+        <table class="table table-striped table-condensed table-hover" st-table="campaigns" st-safe-src="campaignsAux">
+          <thead>
+            <tr>
+              <th colspan="5" class="text-center">Campanhas</th>
+            </tr>
+            <tr>
+              <th st-sort="id"><a role="button">ID</a></th>
+              <th st-sort="nome"><a role="button">Título</a></th>
+              <th class="text-center" st-sort="dtIni"><a role="button">Data de Início</a></th>
+              <th class="text-center" st-sort="dtFin"><a role="button">Data de Fim</a></th>
+              <th colspan="2"></th>
+            </tr>
+            <tr>
+              <th colspan="5">
+                <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="c in campaigns" ng-dblclick="editCampaign(c)">
+              <td>{{c.id}}</td>
+              <td>{{c.nome}}</td>
+              <td class="text-center">{{c.dtIni | date: 'dd/MM/yyyy'}}</td>
+              <td class="text-center">{{c.dtFin | date: 'dd/MM/yyyy'}}</td>
+              <td class="text-center" colspan="2">
+                <div class="btn-group" role="group">
+                  <button type="button" class="btn btn-warning btn-xs" title="Editar" ng-click="editCampaign(c)">
+                      <i class="fa fa-pencil"></i>
+                  </button>
+                  <button type="button" class="btn btn-success btn-xs" title="Replicar" ng-click="replicateCampaign(c)">
+                      <i class="fa fa-reply-all"></i>
+                  </button>
+                  <button type="button" class="btn btn-danger btn-xs" mwl-confirm title="Remover" message="Deseja confirmar a operação?" confirm-text="Sim" cancel-text="Não" placement="{{top}}" on-confirm="removeCampaign(c.id)" on-cancel="cancelOpRmCamp()" confirm-button-type="danger"
+                      cancel-button-type="default">
+                      <i class="fa fa-minus-circle"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="5" class="text-center">
+                <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="dlgCampaign" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" ng-click="closeModal()">&times;</button>
+        <h4 class="modal-title">Nova Campanha</h4>
+      </div>
+      <ng-form name="formCampaign" novalidate>
+        <div class="modal-body">
+          <ul class="nav nav-tabs">
+            <li role="presentation" class="{{row === 0?'active':''}}"><a role="button" ng-click="setRow(0)">Campanha</a></li>
+            <li role="presentation" class="{{row === 1?'active':''}}"><a role="button" ng-click="setRow(1)">Participantes</a></li>
+          </ul>
+          <br>
+          <div ng-show="row === 0">
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="form-group">
+                  <label>Nome da campanha:</label>
+                  <input type="text" class="form-control" ng-model="campaign.nome" required="required" placeholder="Ex.: Queima de Estoque Verão 2017">
+                </div>
+              </div>
+              <div class="col-sm-10">
+                <div class="form-group">
+                  <label>Observações da Campanha:</label>
+                  <textarea name="obs" class="form-control" ng-model="campaign.obs" rows="5" placeholder="Ex.: Regras..."></textarea>
+                </div>
+              </div>
+              <div class="col-sm-2">
+                <div class="form-group">
+                  <label for="">Data Inicial:</label>
+                  <input type="date" class="form-control" ng-model="campaign.dtIni" required="required" mc-date-mask>
+                </div>
+              </div>
+              <div class="col-sm-2">
+                <div class="form-group">
+                  <label for="">Data Final:</label>
+                  <input type="date" class="form-control" ng-model="campaign.dtFin" required="required" mc-date-mask>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <h4>Produtos:</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <div class="well well-sm">
+                  <button type="button" class="btn btn-primary btn-xs" ng-click="openModalProducts()">
+                    <i class="fa fa-search"></i> Pesquisar Produto
+                  </button>
+                  <button type="button" class="btn btn-success btn-xs" ng-click="goRegisterProduct()">
+                    <i class="fa fa-plus"></i> Novo Produto
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-12">
+                <table class="table table-striped table-hover table-condensed" st-table="cProducts" st-safe-src="campaign.produtos">
+                  <thead>
+                    <tr>
+                      <th colspan="7" class="text-center">Informações dos Produtos</th>
+                    </tr>
+                    <tr>
+                      <td></td>
+                      <th st-sort="nome"><a role="button">Produto</a></th>
+                      <th st-sort="vlAtacadoOrig"><a role="button">Vl. de Atacado</a></th>
+                      <th st-sort="vlAtacadoPromo"><a role="button">Vl. de Atacado Promocional</a></th>
+                      <th st-sort="vlVarejoOrig"><a role="button">Vl. de Varejo</a></th>
+                      <th st-sort="vlVarejoPromo"><a role="button">Vl. de Varejo Promocional</a></th>
+                      <th st-sort="qtdMinAtacado"><a role="button">Qtd. Mínima de Atacado</a></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat-start="p in cProducts track by $index">
+                      <td>
+                        <a role="button" ng-click="p.show = !p.show" title="Exibir Similares" ng-if="p.similares.length > 0">
+                          <i class="fa" ng-class="{undefined: 'fa-caret-square-o-right', false: 'fa-caret-square-o-right', true: 'fa-caret-square-o-down'}[p.show]"></i>
+                        </a>
+                      </td>
+                      <td>{{p.nome}}</td>
+                      <td>
+                        <easy-editable es-model="p.vlAtacadoOrig" es-type="currency" es-default="0" es-after-save="afterEditSave(p)"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="p.vlAtacadoPromo" es-type="currency" es-default="0" es-after-save="afterEditSave(p)"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="p.vlVarejoOrig" es-type="currency" es-default="0" es-after-save="afterEditSave(p)"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="p.vlVarejoPromo" es-type="currency" es-default="0" es-after-save="afterEditSave(p)"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="p.qtdMinAtacado" es-type="number" es-default="0" es-after-save="afterEditSave(p)"></easy-editable>
+                      </td>
+                    </tr>
+                    <tr ng-show="p.show">
+                      <th></th>
+                      <th>Produto</th>
+                      <th>Vl. de Atacado</th>
+                      <th>Vl. de Atacado Promocional</th>
+                      <th>Vl. de Varejo</th>
+                      <th>Vl. de Varejo Promocional</th>
+                      <th>Qtd. Mínima de Atacado</th>
+                    </tr>
+                    <tr ng-repeat-end="" ng-repeat="s in p.similares" ng-show="p.show">
+                      <td></td>
+                      <td>{{s.nome}}</td>
+                      <td>
+                        <easy-editable es-model="s.vlAtacadoOrig" es-type="currency" es-default="0"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="s.vlAtacadoPromo" es-type="currency" es-default="0"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="s.vlVarejoOrig" es-type="currency" es-default="0"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="s.vlVarejoPromo" es-type="currency" es-default="0"></easy-editable>
+                      </td>
+                      <td>
+                        <easy-editable es-model="s.qtdMinAtacado" es-type="number" es-default="0"></easy-editable>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="7" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div ng-show="row === 1">
+            <div class="row">
+              <form name="frmUser" ng-submit="getUsersPerOp()" novalidate>
+                <div class="col-sm-2">
+                  <select class="form-control" required="required" ng-model="filterUser.offset" ng-options="type.id as type.description for type in typeSearchUser" ng-change="changeTypeUser()">
+                    </select>
+                </div>
+                <div ng-if="filterUser.offset === 1">
+                  <div class="col-sm-2">
+                    <select class="form-control" required="required" ng-model="filterUser.rows" ng-options="type.id as type.description for type in typeFilterUser" ng-change="changeFilterUser()">
+                    </select>
+                  </div>
+                  <div class="col-sm-3">
+                    <div class="input-group">
+                      <div ng-if="filterUser.rows === 0">
+                        <input class="form-control" type="text" required="required" placeholder="Nome..." ng-model="filterUser.nome">
+                      </div>
+                      <div ng-if="filterUser.rows === 1">
+                        <input class="form-control" type="text" required="required" placeholder="Celular..." ng-model="filterUser.celular" ui-br-phone-number>
+                      </div>
+                      <div ng-if="filterUser.rows === 2">
+                        <input class="form-control" type="text" required="required" placeholder="CPF..." required="required" ng-model="filterUser.cpf" ui-br-cpf-mask>
+                      </div>
+                      <span class="input-group-btn">
+                          <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit" ng-disabled="frmUser.$invalid">
+                            <i class="fa fa-search"></i> Buscar
+                          </button>
+                        </span>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+            <div class="row">
+              <div class="col-sm-6" ng-if="filterUser.offset === 0">
+                <table class="table table-striped table-condensed table-hover" st-table="typesUser" st-safe-src="typesUserAux">
+                  <thead>
+                    <tr>
+                      <th colspan="1" class="text-center">Grupos</th>
+                    </tr>
+                    <tr>
+                      <th class="text-center" st-sort="nome"><a role="button">Descrição</a></th>
+                    </tr>
+                    <tr>
+                      <th colspan="1">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="t in typesUser" ng-click="setTypeWithUserOrUser(0, t)" ng-class="{ 'info' : isOnTheList(0, t) }" ng-if="t.participantes.length > 0">
+                      <td>{{t.nome}}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="1" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="col-sm-6" ng-if="filterUser.offset === 1">
+                <table class="table table-striped table-condensed table-hover" st-table="usersFromFilter" st-safe-src="usersFromFilterAux">
+                  <thead>
+                    <tr>
+                      <th colspan="5" class="text-center">Usuários</th>
+                    </tr>
+                    <tr>
+                      <th st-sort="nome"><a role="button">Nome</a></th>
+                      <th class="text-center" st-sort="cpf"><a role="button">CPF</a></th>
+                      <th st-sort="celular"><a role="button">Celular</a></th>
+                      <th st-sort="tipo.nome"><a role="button">Tipo</a></th>
+                      <th st-sort="municipio.estado.uf"><a role="button">UF</a></th>
+                    </tr>
+                    <tr>
+                      <th colspan="5">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="u in usersFromFilter" ng-click="setTypeWithUserOrUser(1, u)" ng-class="{ 'info' : isOnTheList(1, u) }">
+                      <td>{{u.nome}}</td>
+                      <td class="text-center">{{u.cpf | cpfCnpj}}</td>
+                      <td>{{u.celular | tel}}</td>
+                      <td>
+                        <span class="label" ng-class="{1: 'label-success', 2: 'label-primary', 3: 'label-warning', 5: 'label-danger'}[u.tipo.id]">{{u.tipo.nome}}</span>
+                      </td>
+                      <td>{{u.municipio.estado.uf}}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="5" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="col-sm-6">
+                <table class="table table-striped table-condensed table-hover" st-table="cParticipants" st-safe-src="campaign.participantes">
+                  <thead>
+                    <tr>
+                      <th colspan="4" class="text-center">Participantes</th>
+                    </tr>
+                    <tr>
+                      <th st-sort="nome"><a role="button">Nome</a></th>
+                      <th st-sort="celular"><a role="button">Celular</a></th>
+                      <th st-sort="municipio.estado.uf"><a role="button">UF</a></th>
+                      <th></th>
+                    </tr>
+                    <tr>
+                      <th colspan="4">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="p in cParticipants">
+                      <td>{{p.nome}}</td>
+                      <td>{{p.celular | tel}}</td>
+                      <td>{{p.municipio.estado.uf}}</td>
+                      <td>
+                        <button type="button" class="btn btn-danger btn-xs" title="Remover" ng-click="spliceUser(p)">
+                            <i class="fa fa-minus-circle"></i>
+                          </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="4" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" ng-click="saveCampaign()" ng-disabled="formCampaign.$invalid || isValidLists()">
+          <i class="fa fa-floppy-o"></i> Salvar
+        </button>
+          <button type="button" class="btn btn-default" ng-click="closeModal()">
+          <i class="fa fa-times-circle-o"></i> Cancelar
+        </button>
+        </div>
+      </ng-form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="dlgProdutos" tabindex="-1" role="dialog" aria-labelledby="" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Pesquisa de Produtos</h4>
+      </div>
+      <form name="frmSearch" ng-submit="searchProduct()" novalidate>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-3">
+              <select name="tipo" class="form-control" required="required" ng-model="filterProd.offset" ng-options="type.id as type.description for type in typesProd" ng-change="resetFilterProd()">
+            </select>
+            </div>
+            <div class="col-sm-9">
+              <div class="input-group">
+                <div ng-if="filterProd.offset === 0">
+                  <input type="text" class="form-control" required="required" ng-model="filterProd.nome" placeholder="Nome do Produto...">
+                </div>
+                <div ng-if="filterProd.offset === 1">
+                  <input type="text" class="form-control" required="required" ng-model="filterProd.codigo" placeholder="Código...">
+                </div>
+                <div ng-if="filterProd.offset === 2">
+                  <input type="number" class="form-control" required="required" ng-model="filterProd.codigoBarra" placeholder="Código de Barras...">
+                </div>
+                <span class="input-group-btn">
+                  <button class="btn btn-primary" type="submit" ng-disabled="frmSearch.$invalid">
+                    <i class="fa fa-search"></i>
+                  </button>
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-12">
+              <table class="table table-striped table-condensed table-hover" st-table="products" st-safe-src="productsAux">
+                <thead>
+                  <tr>
+                    <th colspan="6" class="text-center">Produtos</th>
+                  </tr>
+                  <tr>
+                    <th st-sort="codigo"><a role="button">Código</a></th>
+                    <th st-sort="nome"><a role="button">Nome</a></th>
+                    <th st-sort="rows"><a role="button">Qtd. Total</a></th>
+                    <th st-sort="obs"><a role="button">Obs.</a></th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr ng-repeat="p in products">
+                    <td>{{p.codigo}}</td>
+                    <td>{{p.nome}}</td>
+                    <td>{{p.rows}}</td>
+                    <td>
+                      <div class="btn-group">
+                        <button type="button" class="btn btn-primary btn-xs dropdown-toggle" data-toggle="dropdown">
+                        Ver <span class="caret"></span>
+                      </button>
+                        <ul class="dropdown-menu dropdown-menu-md" role="menu">
+                          <li><span role="button" class="text-dropdown">{{p.obs}}</span></li>
+                        </ul>
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <input type="checkbox" ng-model="p.status" ng-true-value="1" ng-false-value="0" ng-change="changeProductInCampaign(p)">
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colspan="5" class="text-center">
+                      <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+          <div ng-if="row === 1">
+            <div class="panel panel-default panel-body">
+              <form name="frmUser" ng-submit="getUsersPerOp()" novalidate>
+                <div class="row">
+                  <div class="col-sm-2">
+                    <select class="form-control" required="required" ng-model="filterUser.offset" ng-options="type.id as type.description for type in typeSearchUser" ng-change="changeTypeUser()">
+                    </select>
+                  </div>
+                  <div ng-if="filterUser.offset === 1">
+                    <div class="col-sm-2">
+                      <select class="form-control" required="required" ng-model="filterUser.rows" ng-options="type.id as type.description for type in typeFilterUser" ng-change="changeFilterUser()">
+                      </select>
+                    </div>
+                    <div class="col-sm-3">
+                      <div class="input-group">
+                        <div ng-if="filterUser.rows === 0">
+                          <input class="form-control" type="text" required="required" placeholder="Nome..." ng-model="filterUser.nome">
+                        </div>
+                        <div ng-if="filterUser.rows === 1">
+                          <input class="form-control" type="text" required="required" placeholder="Celular..." ng-model="filterUser.celular" ui-br-phone-number>
+                        </div>
+                        <div ng-if="filterUser.rows === 2">
+                          <input class="form-control" type="text" required="required" placeholder="CPF..." required="required" ng-model="filterUser.cpf" ui-br-cpf-mask>
+                        </div>
+                        <span class="input-group-btn">
+                          <button class="btn btn-primary" title="Efetuar Pesquisa" type="submit" ng-disabled="frmUser.$invalid">
+                            <i class="fa fa-search"></i> Buscar
+                          </button>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </form>
+              <div class="col-sm-6" ng-if="filterUser.offset === 0">
+                <table class="table table-striped table-condensed table-hover" st-table="typesUser" st-safe-src="typesUserAux">
+                  <thead>
+                    <tr>
+                      <th colspan="1" class="text-center">Grupos</th>
+                    </tr>
+                    <tr>
+                      <th class="text-center" st-sort="nome"><a role="button">Descrição</a></th>
+                    </tr>
+                    <tr>
+                      <th colspan="1">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="t in typesUser" ng-click="setTypeWithUserOrUser(0, t)" ng-class="{ 'info' : isOnTheList(0, t) }" ng-if="t.participantes.length > 0">
+                      <td>{{t.nome}}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="1" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="col-sm-6" ng-if="filterUser.offset === 1">
+                <table class="table table-striped table-condensed table-hover" st-table="usersFromFilter" st-safe-src="usersFromFilterAux">
+                  <thead>
+                    <tr>
+                      <th colspan="5" class="text-center">Usuários</th>
+                    </tr>
+                    <tr>
+                      <th st-sort="nome"><a role="button">Nome</a></th>
+                      <th class="text-center" st-sort="cpf"><a role="button">CPF</a></th>
+                      <th st-sort="celular"><a role="button">Celular</a></th>
+                      <th st-sort="tipo.nome"><a role="button">Tipo</a></th>
+                      <th st-sort="municipio.estado.uf"><a role="button">UF</a></th>
+                    </tr>
+                    <tr>
+                      <th colspan="5">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="u in usersFromFilter" ng-click="setTypeWithUserOrUser(1, u)" ng-class="{ 'info' : isOnTheList(1, u) }">
+                      <td>{{u.nome}}</td>
+                      <td class="text-center">{{u.cpf | cpfCnpj}}</td>
+                      <td>{{u.celular | tel}}</td>
+                      <td>
+                        <span class="label" ng-class="{1: 'label-success', 2: 'label-primary', 3: 'label-warning', 5: 'label-danger'}[u.tipo.id]">{{u.tipo.nome}}</span>
+                      </td>
+                      <td>{{u.municipio.estado.uf}}</td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="5" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+              <div class="col-sm-6">
+                <table class="table table-striped table-condensed table-hover" st-table="participants" st-safe-src="participantsAux">
+                  <thead>
+                    <tr>
+                      <th colspan="4" class="text-center">Participantes</th>
+                    </tr>
+                    <tr>
+                      <th st-sort="nome"><a role="button">Nome</a></th>
+                      <th st-sort="celular"><a role="button">Celular</a></th>
+                      <th st-sort="municipio.estado.uf"><a role="button">UF</a></th>
+                      <th></th>
+                    </tr>
+                    <tr>
+                      <th colspan="4">
+                        <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr ng-repeat="p in participants">
+                      <td>{{p.nome}}</td>
+                      <td>{{p.celular | tel}}</td>
+                      <td>{{p.municipio.estado.uf}}</td>
+                      <td>
+                        <button type="button" class="btn btn-danger btn-xs" title="Remover" ng-click="spliceUser(p)">
+                          <i class="fa fa-minus-circle"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colspan="4" class="text-center">
+                        <div class="btn-group btn-group-sm" role="group">
+                          <button type="button" class="btn btn-primary" ng-disabled="participantsAux.length === 0" ng-click="saveParticipants()">Salvar</button>
+                          <button type="button" class="btn btn-danger" ng-disabled="participantsAux.length === 0" ng-click="cancelOp()">Cancelar</button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colspan="4" class="text-center">
+                        <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" data-dismiss="modal">
+          <i class="fa fa-floppy-o"></i> Finalizar
+        </button>
+          <button type="button" class="btn btn-default" ng-click="cancelAddProducts()">
+          <i class="fa fa-times-circle-o"></i> Cancelar
+        </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

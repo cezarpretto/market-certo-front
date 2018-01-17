@@ -1,0 +1,255 @@
+<ot-header ot-titulo="Usuários" ot-icone="fa fa-users"></ot-header>
+<section class="content">
+  <ul class="nav nav-tabs">
+    <li role="presentation" class="{{row === 0?'active':''}}"><a role="button" ng-click="setRow(0)">Associados</a></li>
+    <li ng-show="selectedCompany.tipo.id === 1" role="presentation" class="{{row === 1?'active':''}}"><a role="button" ng-click="setRow(1)">Associação</a></li>
+  </ul>
+  <br>
+  <div ng-if="row === 0">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="well well-sm clearfix">
+          <button type="button" class="btn btn-success btn-sm pull-right" ng-click="new()">
+            <i class="fa fa-plus"></i> Novo
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default panel-body">
+      <div class="row">
+        <div class="col-sm-12">
+          <table class="table table-striped table-hover table-condensed table-responsive" st-table="users" st-safe-src="usersAux">
+            <thead>
+              <tr>
+                <th colspan="5" class="text-center">Usuários Filiados</th>
+              </tr>
+              <tr>
+                <th st-sort="nome"><a role="button">Nome</a></th>
+                <th st-sort="email"><a role="button">Email</a></th>
+                <th st-sort="celular"><a role="button">Celular</a></th>
+                <!-- <th st-sort="municipio.municipio"><a role="button">Município</a></th> -->
+                <th st-sort="tipo.id"><a role="button">Tipo</a></th>
+                <th></th>
+              </tr>
+              <tr>
+                <th colspan="4">
+                  <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                </th>
+                <th colspan="1">
+                  <select class="form-control input-sm" st-search="inativo">
+                    <option value="false">Ativos</option>
+                    <option value="true">Inativos</option>
+                    <option value="">Todos</option>
+                  </select>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="u in users" ng-dblclick="selectUser(u)" class="{{u.id === user.id?'info':''}}">
+                <td>{{u.nome}}</td>
+                <td>{{u.email}}</td>
+                <td>{{u.celular | tel}}</td>
+                <!-- <td>{{u.municipio.municipio}}</td> -->
+                <td>
+                  <span class="label" ng-class="{1: 'label-success', 2: 'label-primary', 3: 'label-warning', 5: 'label-danger'}[u.tipo.id]">{{u.tipo.nome}}</span>
+                </td>
+                <td class="text-center">
+                  <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-warning btn-xs" title="Editar" ng-click="selectUser(u)" ng-disabled="!isAllowedToEdit(u)">
+                      <i class="fa fa-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-xs" ng-class="{true: 'btn-success', false: 'btn-danger'}[u.inativo]" mwl-confirm title="{{u.inativo ? 'Habilitar' : 'Desabilitar'}}" message="Deseja confirmar a operação?" confirm-text="Sim" cancel-text="Não" placement="{{top}}" on-confirm="enableDisableUser(u)" on-cancel="cancelOpChangeUser()" ng-disabled="!isAllowedToEdit(u)" confirm-button-type="danger" cancel-button-type="default">
+                      <i class="fa" ng-class="{true: 'fa-plus-circle', false: 'fa-minus-circle'}[u.inativo]"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" class="text-center">
+                  <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div ng-if="row === 1">
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="panel panel-default panel-body">
+          <table class="table table-striped table-hover table-condensed table-responsive" st-table="allUsers" st-safe-src="allUsersAux">
+            <thead>
+              <tr>
+                <th colspan="3" class="text-center">Usuários Cadastrados</th>
+              </tr>
+              <tr>
+                <th st-sort="nome"><a role="button">Nome</a></th>
+                <th st-sort="email"><a role="button">Email</a></th>
+                <!-- <th st-sort="celular"><a role="button">Celular</a></th> -->
+                <th st-sort="municipio.municipio"><a role="button">Município</a></th>
+              </tr>
+              <tr>
+                <th colspan="3">
+                  <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="u in allUsers" ng-dblclick="getAllCompanies(u.id)" class="{{idUserRef === u.id?'info':''}}">
+                <td>{{u.nome}}</td>
+                <td>{{u.email}}</td>
+                <!-- <td>{{u.celular | tel}}</td> -->
+                <td>{{u.municipio.municipio}}</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="text-center">
+                  <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+      <div class="col-sm-6">
+        <div class="panel panel-default panel-body">
+          <table class="table table-striped table-hover table-condensed table-responsive" st-table="companies" st-safe-src="companiesAux">
+            <thead>
+              <tr>
+                <th colspan="5" class="text-center">Referência do Usuário</th>
+              </tr>
+              <tr>
+                <th st-sort="email"><a role="button">Razão Social</a></th>
+                <th st-sort="cpfCnpj"><a role="button">CNPJ</a></th>
+                <th st-sort="endereco.municipio.municipio"><a role="button">Município</a></th>
+                <th class="text-center" st-sort="status"><a role="button">Referenciada</a></th>
+                <th><a role="button">Tipo</a></th>
+              </tr>
+              <tr>
+                <th colspan="5">
+                  <input type="text" st-search="" class="form-control input-sm" placeholder="Pesquisar...">
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr ng-repeat="c in companies">
+                <td>{{c.razaoSocial}}</td>
+                <td>{{c.cpfCnpj | cpfCnpj}}</td>
+                <td>{{c.endereco.municipio.municipio}}</td>
+                <td class="text-center">
+                  <input type="checkbox" name="status{{c.id}}" ng-model="c.status" ng-change="changeObject(c)" ng-true-value="1" ng-false-value="0" ng-disabled="c.tipo.id === 1">
+                </td>
+                <td>
+                  <select class="form-control" ng-model="c.tipo.id" ng-change="changeObject(c)" ng-disabled="c.status !== 1 || c.tipo.id === 1" convert-to-number>
+                    <option value="1" ng-show="c.tipo.id === 1">Root</option>
+                    <option ng-repeat="type in types" value="{{type.id}}">{{type.nome}}</option>
+                  </select>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="5" class="text-center">
+                  <div st-pagination="" st-items-by-page="10" st-displayed-pages="7"></div>
+                </td>
+              </tr>
+              <tr ng-show="idUserRef !== undefined && companiesAux.length > 0">
+                <td colspan="5" class="text-center">
+                  <button type="button" class="btn btn-primary" ng-click="saveRef()" ng-disabled="companiesUpdate.length === 0">
+                    <i class="fa fa-floppy-o"></i> Salvar
+                  </button>
+                </td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="dlgUser" role="dialog" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" ng-click="closeModal()">&times;</button>
+        <h4 class="modal-title">Criação/Edição de Usuário's</h4>
+      </div>
+      <form name="frmUser" ng-submit="save()" novalidate>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-sm-2">
+              <div class="form-group" ng-if="isEditing">
+                <label for="">CPF:</label>
+                <input type="text" class="form-control" required="required" ng-model="user.cpf" ui-br-cpf-mask>
+              </div>
+              <div class="form-group" ng-if="!isEditing">
+                <label for="">CPF:</label>
+                <input type="text" class="form-control" required="required" ng-model="user.cpf" ui-br-cpf-mask ng-blur="getUser()">
+              </div>
+            </div>
+            <div class="" ng-class="{false: 'col-sm-6', true: 'col-sm-10'}[isEditing]">
+              <div class="form-group">
+                <label for="">Nome:</label>
+                <input type="text" class="form-control" required="required" ng-model="user.nome">
+              </div>
+            </div>
+            <div class="col-sm-4" ng-if="!isEditing">
+              <div class="form-group">
+                <label for="">Senha:</label>
+                <input type="password" class="form-control" required="required" ng-model="user.senha" ng-if="isRegistered === false">
+                <input type="password" class="form-control" required="required" ng-disabled="isRegistered" ng-if="isRegistered">
+              </div>
+            </div>
+            <div class="col-sm-6">
+              <div class="form-group">
+                <label for="">Email:</label>
+                <input type="text" class="form-control" required="required" ng-model="user.email">
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="">UF:</label>
+                <select class="form-control" required="required" ng-model="user.municipio.estado" ng-options="state as state.uf for state in states track by state.id" ng-change="getCities(user.municipio.estado.id)">
+                </select>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <div class="form-group">
+                <label for="">Cidade:</label>
+                <select class="form-control" required="required" ng-model="user.municipio" ng-options="city as city.municipio for city in cities track by city.id">
+                </select>
+              </div>
+            </div>
+            <div class="col-sm-2">
+              <div class="form-group">
+                <label for="">Celular:</label>
+                <input type="text" class="form-control" required="required" ng-model="user.celular" ui-br-phone-number>
+              </div>
+            </div>
+            <div class="col-sm-4">
+              <div class="form-group">
+                <label for="">Tipo:</label>
+                <select class="form-control" required="required" ng-model="user.tipo.id" ng-options="type.id as type.nome for type in types">
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary" ng-disabled="frmUser.$invalid">
+            <i class="fa fa-floppy-o"></i> Salvar
+          </button>
+          <button type="button" class="btn btn-default" ng-click="closeModal()">
+            <i class="fa fa-times-circle-o"></i> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

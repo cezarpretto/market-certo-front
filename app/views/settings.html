@@ -1,0 +1,56 @@
+<ot-header ot-titulo="Perfil" ot-icone="fa fa-cog"></ot-header>
+<section class="content">
+  <form name="frmProfile" ng-submit="save()">
+    <div class="row">
+      <div class="col-sm-12">
+        <div class="well well-sm clearfix">
+          <button type="submit" class="btn btn-primary btn-sm pull-right" ng-disabled="frmProfile.$invalid">
+            <i class="fa fa-floppy-o" aria-hidden="true"></i> Salvar
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="panel panel-default panel-body">
+      <div class="row">
+        <div class="col-sm-5">
+          <div class="form-group">
+            <label for="">Nome:</label>
+            <input type="text" class="form-control" required="required" ng-model="user.nome">
+          </div>
+        </div>
+        <div class="col-sm-3" ng-if="!isEditing">
+          <div class="form-group">
+            <label for="">Senha:</label>
+            <input type="password" class="form-control" ng-model="user.senha">
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="">Email:</label>
+            <input type="text" class="form-control" required="required" ng-model="user.email">
+          </div>
+        </div>
+        <div class="col-sm-2">
+          <div class="form-group">
+            <label for="">UF:</label>
+            <select class="form-control" required="required" ng-model="user.municipio.estado" ng-options="state as state.uf for state in states track by state.id" ng-change="getCities(user.municipio.estado.id)">
+            </select>
+          </div>
+        </div>
+        <div class="col-sm-4">
+          <div class="form-group">
+            <label for="">Cidade:</label>
+            <select class="form-control" required="required" ng-model="user.municipio" ng-options="city as city.municipio for city in cities track by city.id">
+            </select>
+          </div>
+        </div>
+        <div class="col-sm-2">
+          <div class="form-group">
+            <label for="">Celular:</label>
+            <input type="text" class="form-control" required="required" ng-model="user.celular" ui-br-phone-number>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</section>
